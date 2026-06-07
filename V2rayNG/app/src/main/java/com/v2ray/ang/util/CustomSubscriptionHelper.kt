@@ -81,7 +81,7 @@ object CustomSubscriptionHelper {
         return try {
             val cacheKey = "master_list_cache_${System.currentTimeMillis() / MASTER_LIST_CACHE_DURATION}"
             val cachedLines = MmkvManager.decodeSettingsString(cacheKey)
-            val validLines = if (!cachedLines.isNullOrEmpty()) {
+            val lines = if (!cachedLines.isNullOrEmpty()) {
                 cachedLines.split("\n")
             } else {
                 val masterListContent = fetchMasterList()
@@ -92,14 +92,23 @@ object CustomSubscriptionHelper {
                     return false
                 }
             }
-            
+
             val normalizedUsername = username.trim().lowercase()
-            validLines.any { line ->
-                val lineUsername = line.trim().lowercase()
-                lineUsername == normalizedUsername || 
-                lineUsername.startsWith("$normalizedUsername.") ||
-                lineUsername.startsWith("$normalizedUsername/")
+            var foundUrl: String? = null
+            for (line in lines) {
+                val trimmedLine = line.trim()
+                if (trimmedLine.contains("sub=$normalizedUsername", ignoreCase = true) ||
+                    trimmedLine.contains("sub=$normalizedUsername&", ignoreCase = true)) {
+                    foundUrl = trimmedLine
+                    break
+                }
             }
+
+            if (foundUrl != null) {
+                MmkvManager.encodeSettings(AppConfig.PREF_CUSTOM_USERNAME_URL, foundUrl)
+            }
+
+            foundUrl != null
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to validate username: $username", e)
             false
@@ -124,18 +133,21 @@ object CustomSubscriptionHelper {
     fun initializeCustomSubscription(username: String): String {
         val subId = username
         val existingSubscription = MmkvManager.decodeSubscription(subId)
-        
+
         if (existingSubscription == null) {
+            val subscriptionUrl = MmkvManager.decodeSettingsString(AppConfig.PREF_CUSTOM_USERNAME_URL)
+                ?: getSubscriptionUrl(username)
+
             val customSubItem = SubscriptionItem(
                 remarks = username,
-                url = getSubscriptionUrl(username),
+                url = subscriptionUrl,
                 enabled = true,
                 autoUpdate = false
             )
             MmkvManager.encodeSubscription(subId, customSubItem)
             setPaidSubscriptionId(subId)
         }
-        
+
         return subId
     }
 

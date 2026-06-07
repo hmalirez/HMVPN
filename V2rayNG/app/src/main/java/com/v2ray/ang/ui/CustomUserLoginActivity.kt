@@ -8,7 +8,7 @@ import com.v2ray.ang.R
 import com.v2ray.ang.databinding.ActivityCustomUserLoginBinding
 import com.v2ray.ang.extension.toast
 import com.v2ray.ang.handler.MmkvManager
-import com.v2ray.ang.handler.MessageUtil
+import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.util.CustomSubscriptionHelper
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.TestServiceMessage
@@ -167,7 +167,19 @@ class CustomUserLoginActivity : HelperBaseActivity() {
                     )
                     
                     // Wait for ping to complete (with timeout)
-                    delay(30000) // Wait max 30 seconds
+                    delay(35000) // Wait max 35 seconds for ping + sort
+                    
+                    // Sort servers by test results
+                    val serverDelays = mutableListOf<Pair<String, Long>>()
+                    serverGuids.forEach { key ->
+                        val delay = MmkvManager.decodeServerAffiliationInfo(key)?.testDelayMillis ?: 0L
+                        serverDelays.add(Pair(key, if (delay <= 0L) 999999L else delay))
+                    }
+                    serverDelays.sortBy { it.second }
+                    
+                    val sortedServerList = serverDelays.map { it.first }.toMutableList()
+                    MmkvManager.encodeServerList(sortedServerList, subId)
+                    MmkvManager.encodeSettings(AppConfig.CACHE_SUBSCRIPTION_ID, subId)
                 }
                 
                 withContext(Dispatchers.Main) {

@@ -483,4 +483,19 @@
     <string name="toast_username_empty">Username cannot be empty</string>
     <string name="toast_loading">Loading...</string>
 
+    <!-- Free group name -->
+    <string name="title_free_group">رایگان</string>
+
+    <!-- Menu items for MainActivity -->
+    <string name="menu_item_export_all">Export all</string>
+    <string name="menu_item_ping_all">Ping all</string>
+    <string name="menu_item_real_ping_all">Real ping all</string>
+    <string name="menu_item_service_restart">Service restart</string>
+    <string name="menu_item_del_all_config">Delete all config</string>
+    <string name="menu_item_del_duplicate_config">Delete duplicate config</string>
+    <string name="menu_item_del_invalid_config">Delete invalid config</string>
+    <string name="menu_item_sort_by_test_results">Sort by test results</string>
+    <string name="menu_item_locate_selected_config">Locate selected config</string>
+    <string name="menu_item_sub_update">Update subscription</string>
+
 </resources>

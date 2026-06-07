@@ -4,6 +4,7 @@ import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.entities.SubscriptionItem
 import com.v2ray.ang.handler.AngConfigManager
 import com.v2ray.ang.handler.MmkvManager
+import com.v2ray.ang.util.LogUtil
 
 /**
  * Helper class for managing custom subscriptions with usernames
@@ -104,7 +105,7 @@ object CustomSubscriptionHelper {
         
         if (existingSubscription == null) {
             val freeSubItem = SubscriptionItem(
-                remarks = "Free",
+                remarks = "رایگان",
                 url = getFreeSubscriptionUrl(),
                 enabled = true,
                 autoUpdate = false

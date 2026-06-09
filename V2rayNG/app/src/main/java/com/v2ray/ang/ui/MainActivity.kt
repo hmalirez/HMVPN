@@ -266,6 +266,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                 }
                 if (result.configCount > 0) {
                     mainViewModel.reloadServerList()
+                    mainViewModel.testAllRealPing()
                 }
                 hideLoading()
             }

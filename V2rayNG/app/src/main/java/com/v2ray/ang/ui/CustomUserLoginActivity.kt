@@ -8,6 +8,7 @@ import com.v2ray.ang.R
 import com.v2ray.ang.databinding.ActivityCustomUserLoginBinding
 import com.v2ray.ang.extension.toast
 import com.v2ray.ang.handler.MmkvManager
+import com.v2ray.ang.handler.SettingsChangeManager
 import com.v2ray.ang.util.CustomSubscriptionHelper
 import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.AppConfig
@@ -147,14 +148,11 @@ class CustomUserLoginActivity : HelperBaseActivity() {
     private fun startAutoPingAndSort(subId: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Get the servers for this subscription
                 val serverGuids = MmkvManager.decodeServerList(subId)
-                
+
                 if (serverGuids.isNotEmpty()) {
-                    // Clear previous test results
                     MmkvManager.clearAllTestDelayResults(serverGuids)
-                    
-                    // Start ping test for all servers in this subscription
+
                     MessageUtil.sendMsg2TestService(
                         this@CustomUserLoginActivity,
                         TestServiceMessage(
@@ -163,24 +161,23 @@ class CustomUserLoginActivity : HelperBaseActivity() {
                             serverGuids = serverGuids
                         )
                     )
-                    
-                    // Wait for ping to complete (with timeout)
-                    delay(35000) // Wait max 35 seconds for ping + sort
-                    
-                    // Sort servers by test results
+
+                    delay(35000)
+
                     val serverDelays = mutableListOf<Pair<String, Long>>()
                     serverGuids.forEach { key ->
                         val delay = MmkvManager.decodeServerAffiliationInfo(key)?.testDelayMillis ?: 0L
                         serverDelays.add(Pair(key, if (delay <= 0L) 999999L else delay))
                     }
                     serverDelays.sortBy { it.second }
-                    
+
                     val sortedServerList = serverDelays.map { it.first }.toMutableList()
                     MmkvManager.encodeServerList(sortedServerList, subId)
                     MmkvManager.encodeSettings(AppConfig.CACHE_SUBSCRIPTION_ID, subId)
                 }
-                
+
                 withContext(Dispatchers.Main) {
+                    SettingsChangeManager.makeSetupGroupTab()
                     navigateToMain()
                 }
             } catch (e: Exception) {

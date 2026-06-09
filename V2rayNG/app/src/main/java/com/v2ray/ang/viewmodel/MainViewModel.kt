@@ -437,9 +437,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 removeInvalidServer()
             }
 
-            if (MmkvManager.decodeSettingsBool(AppConfig.PREF_AUTO_SORT_AFTER_TEST)) {
-                sortByTestResults()
-            }
+            // Always sort after tests complete
+            sortByTestResults()
 
             withContext(Dispatchers.Main) {
                 reloadServerList()

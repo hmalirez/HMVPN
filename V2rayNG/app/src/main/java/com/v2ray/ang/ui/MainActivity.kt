@@ -1,7 +1,6 @@
 package com.v2ray.ang.ui
 
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.net.VpnService
 import android.os.Bundle
 import android.view.KeyEvent
@@ -95,10 +94,10 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             }
         })
 
-        binding.fab.setOnClickListener { handleFabAction() }
         binding.layoutTest.setOnClickListener { handleStatusClick() }
         binding.ivUpdate.setOnClickListener { importConfigViaSub() }
         binding.ivPing.setOnClickListener { handlePingClick() }
+        binding.ivConnect.setOnClickListener { handleFabAction() }
 
         setupGroupTab()
         setupViewModel()
@@ -201,32 +200,30 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         binding.tvTestState.text = content
         
         val icon = when {
-            content == null -> R.drawable.ic_shield_off
+            content == null -> R.drawable.ic_dot_disconnected
             content.startsWith(getString(R.string.status_connected)) ||
             content.startsWith(getString(R.string.connection_test_available).substring(0, 7)) ||
             content.startsWith("Ping ") ||
-            content.startsWith("پینگ ") -> R.drawable.ic_shield
-            else -> R.drawable.ic_shield_off
+            content.startsWith("پینگ ") -> R.drawable.ic_dot_connected
+            else -> R.drawable.ic_dot_disconnected
         }
         binding.ivStatusIcon.setImageResource(icon)
     }
 
     private fun applyRunningState(isLoading: Boolean, isRunning: Boolean) {
         if (isLoading) {
-            binding.fab.setImageResource(R.drawable.ic_fab_check)
+            binding.ivConnect.setImageResource(R.drawable.ic_dot_disconnected)
             return
         }
 
         if (isRunning) {
-            binding.fab.setImageResource(R.drawable.ic_stop_24dp)
-            binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_active))
-            binding.fab.contentDescription = getString(R.string.action_stop_service)
+            binding.ivConnect.setImageResource(R.drawable.ic_dot_connected)
+            binding.ivConnect.contentDescription = getString(R.string.action_stop_service)
             setTestState(getString(R.string.status_connected))
             binding.layoutTest.isFocusable = true
         } else {
-            binding.fab.setImageResource(R.drawable.ic_play_24dp)
-            binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
-            binding.fab.contentDescription = getString(R.string.tasker_start_service)
+            binding.ivConnect.setImageResource(R.drawable.ic_dot_disconnected)
+            binding.ivConnect.contentDescription = getString(R.string.tasker_start_service)
             setTestState(getString(R.string.status_disconnected))
             binding.layoutTest.isFocusable = false
         }
@@ -307,6 +304,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                     progressDialog.dismiss()
                     toast(R.string.toast_success)
                     mainViewModel.reloadServerList()
+                    setupGroupTab()
                     if (MmkvManager.decodeSettingsBool(AppConfig.PREF_AUTO_PING_AFTER_LOAD)) {
                         mainViewModel.testAllRealPing()
                     }
@@ -337,6 +335,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                     progressDialog.dismiss()
                     toast(R.string.toast_success)
                     mainViewModel.reloadServerList()
+                    setupGroupTab()
                     if (MmkvManager.decodeSettingsBool(AppConfig.PREF_AUTO_PING_AFTER_LOAD)) {
                         mainViewModel.testAllRealPing()
                     }

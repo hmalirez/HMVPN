@@ -212,17 +212,17 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
     private fun applyRunningState(isLoading: Boolean, isRunning: Boolean) {
         if (isLoading) {
-            binding.ivConnect.setImageResource(R.drawable.ic_dot_disconnected)
+            binding.ivConnect.setImageResource(R.drawable.ic_heart_outline_white)
             return
         }
 
         if (isRunning) {
-            binding.ivConnect.setImageResource(R.drawable.ic_dot_connected)
+            binding.ivConnect.setImageResource(R.drawable.ic_heart_filled_white)
             binding.ivConnect.contentDescription = getString(R.string.action_stop_service)
             setTestState(getString(R.string.status_connected))
             binding.layoutTest.isFocusable = true
         } else {
-            binding.ivConnect.setImageResource(R.drawable.ic_dot_disconnected)
+            binding.ivConnect.setImageResource(R.drawable.ic_heart_outline_white)
             binding.ivConnect.contentDescription = getString(R.string.tasker_start_service)
             setTestState(getString(R.string.status_disconnected))
             binding.layoutTest.isFocusable = false

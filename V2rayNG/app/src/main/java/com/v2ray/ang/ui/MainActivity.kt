@@ -5,13 +5,13 @@ import android.content.res.ColorStateList
 import android.net.VpnService
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.Menu
 import android.view.MenuItem
+import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
@@ -30,6 +30,7 @@ import com.v2ray.ang.handler.SettingsChangeManager
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.handler.SubscriptionUpdater
 import com.v2ray.ang.handler.AngConfigManager
+import com.v2ray.ang.util.CustomSubscriptionHelper
 import com.v2ray.ang.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -63,15 +64,9 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Check if it's the first launch with custom user mode
         val isFirstLaunch = !MmkvManager.decodeSettingsBool(AppConfig.PREF_IS_BOOTED, false)
         if (isFirstLaunch) {
-            // Mark that the app has been launched
             MmkvManager.encodeSettings(AppConfig.PREF_IS_BOOTED, true)
-            // Show custom user login activity
-            startActivity(Intent(this, CustomUserLoginActivity::class.java))
-            finish()
-            return
         }
         
         setContentView(binding.root)
@@ -102,7 +97,9 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         })
 
         binding.fab.setOnClickListener { handleFabAction() }
-        binding.layoutTest.setOnClickListener { handleLayoutTestClick() }
+        binding.layoutTest.setOnClickListener { handleStatusClick() }
+        binding.ivUpdate.setOnClickListener { importConfigViaSub() }
+        binding.ivPing.setOnClickListener { handlePingClick() }
 
         setupGroupTab()
         setupViewModel()
@@ -194,6 +191,16 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
     private fun setTestState(content: String?) {
         binding.tvTestState.text = content
+        
+        val icon = when {
+            content == null -> R.drawable.ic_shield_off
+            content.startsWith(getString(R.string.status_connected)) ||
+            content.startsWith(getString(R.string.connection_test_available).substring(0, 7)) ||
+            content.startsWith("Ping ") ||
+            content.startsWith("پینگ ") -> R.drawable.ic_shield
+            else -> R.drawable.ic_shield_off
+        }
+        binding.ivStatusIcon.setImageResource(icon)
     }
 
     private fun applyRunningState(isLoading: Boolean, isRunning: Boolean) {
@@ -206,13 +213,13 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             binding.fab.setImageResource(R.drawable.ic_stop_24dp)
             binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_active))
             binding.fab.contentDescription = getString(R.string.action_stop_service)
-            setTestState(getString(R.string.connection_connected))
+            setTestState(getString(R.string.status_connected))
             binding.layoutTest.isFocusable = true
         } else {
             binding.fab.setImageResource(R.drawable.ic_play_24dp)
             binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             binding.fab.contentDescription = getString(R.string.tasker_start_service)
-            setTestState(getString(R.string.connection_not_connected))
+            setTestState(getString(R.string.status_disconnected))
             binding.layoutTest.isFocusable = false
         }
     }
@@ -288,6 +295,14 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         binding.drawerLayout.closeDrawer(GravityCompat.START)
         return when (item.itemId) {
+            R.id.login_with_username -> {
+                showUsernameLoginDialog()
+                true
+            }
+            R.id.login_as_guest -> {
+                initializeFreeModeFromMenu()
+                true
+            }
             R.id.per_app_proxy_settings -> {
                 requestActivityLauncher.launch(Intent(this, PerAppProxyActivity::class.java))
                 true
@@ -297,6 +312,101 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                 true
             }
             else -> false
+        }
+    }
+
+    private fun showUsernameLoginDialog() {
+        val currentUsername = CustomSubscriptionHelper.getCustomUsername().takeIf { it.isNotBlank() }
+        val input = android.widget.EditText(this).apply {
+            hint = getString(R.string.hint_enter_username)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+            if (!currentUsername.isNullOrBlank()) {
+                setText(currentUsername)
+            }
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_enter_username)
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val username = input.text.toString().trim()
+                if (username.isEmpty()) {
+                    toast(R.string.toast_username_empty)
+                } else {
+                    initializeCustomModeFromMenu(username)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun initializeCustomModeFromMenu(username: String) {
+        val progressDialog = AlertDialog.Builder(this)
+            .setMessage(R.string.toast_validating)
+            .setCancelable(false)
+            .show()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                if (!CustomSubscriptionHelper.isUsernameValid(username)) {
+                    withContext(Dispatchers.Main) {
+                        progressDialog.dismiss()
+                        toast(R.string.toast_username_invalid)
+                    }
+                    return@launch
+                }
+
+                CustomSubscriptionHelper.setCustomUsername(username)
+                val subId = CustomSubscriptionHelper.initializeCustomSubscription(username)
+                val updateSuccess = CustomSubscriptionHelper.updateCustomSubscription(subId)
+                MmkvManager.encodeSettings(AppConfig.CACHE_SUBSCRIPTION_ID, subId)
+
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    toast(R.string.toast_success)
+                    mainViewModel.reloadServerList()
+                    if (MmkvManager.decodeSettingsBool(AppConfig.PREF_AUTO_PING_AFTER_LOAD)) {
+                        mainViewModel.testAllRealPing()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    toast(R.string.toast_failure)
+                }
+            }
+        }
+    }
+
+    private fun initializeFreeModeFromMenu() {
+        val progressDialog = AlertDialog.Builder(this)
+            .setMessage(R.string.toast_loading)
+            .setCancelable(false)
+            .show()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                CustomSubscriptionHelper.switchToFreeMode()
+                val freeSubId = CustomSubscriptionHelper.initializeFreeSubscription()
+                val updateSuccess = CustomSubscriptionHelper.updateCustomSubscription(freeSubId)
+                MmkvManager.encodeSettings(AppConfig.CACHE_SUBSCRIPTION_ID, freeSubId)
+
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    toast(R.string.toast_success)
+                    mainViewModel.reloadServerList()
+                    if (MmkvManager.decodeSettingsBool(AppConfig.PREF_AUTO_PING_AFTER_LOAD)) {
+                        mainViewModel.testAllRealPing()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    toast(R.string.toast_failure)
+                }
+            }
         }
     }
 

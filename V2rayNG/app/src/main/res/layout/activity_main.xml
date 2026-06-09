@@ -69,23 +69,51 @@
                         android:focusable="true"
                         android:nextFocusLeft="@+id/view_pager"
                         android:nextFocusRight="@+id/fab"
-                        android:orientation="vertical">
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_status_oval"
+                        android:gravity="center_vertical"
+                        android:layout_marginStart="@dimen/padding_spacing_dp16"
+                        android:layout_marginEnd="@dimen/padding_spacing_dp16"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp">
 
-                        <View
-                            android:layout_width="wrap_content"
-                            android:layout_height="1dp"
-                            android:background="@color/divider_color_light" />
+                        <ImageView
+                            android:id="@+id/iv_status_icon"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginStart="16dp"
+                            android:src="@drawable/ic_shield_off" />
 
                         <TextView
                             android:id="@+id/tv_test_state"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:layout_marginEnd="12dp"
                             android:gravity="start|center"
-                            android:maxLines="2"
+                            android:maxLines="1"
                             android:minLines="1"
-                            android:paddingStart="@dimen/padding_spacing_dp16"
-                            android:text="@string/connection_test_pending"
+                            android:text="@string/status_disconnected"
                             android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+
+                        <ImageView
+                            android:id="@+id/iv_update"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="12dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:src="@drawable/ic_cloud_download_24dp" />
+
+                        <ImageView
+                            android:id="@+id/iv_ping"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="16dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:src="@drawable/ic_qu_scan_24dp" />
 
                     </LinearLayout>
                 </LinearLayout>

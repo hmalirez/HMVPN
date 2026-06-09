@@ -5,6 +5,14 @@
 
     <group android:id="@+id/group_main">
         <item
+            android:id="@+id/login_with_username"
+            android:icon="@drawable/ic_lock_24dp"
+            android:title="@string/login_with_username" />
+        <item
+            android:id="@+id/login_as_guest"
+            android:icon="@drawable/ic_privacy_24dp"
+            android:title="@string/login_as_guest" />
+        <item
             android:id="@+id/per_app_proxy_settings"
             android:icon="@drawable/ic_per_apps_24dp"
             android:title="@string/per_app_proxy_settings" />

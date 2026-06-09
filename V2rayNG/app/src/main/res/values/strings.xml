@@ -367,6 +367,10 @@
     <string name="connection_not_connected">Not connected</string>
     <string name="connection_runing_task_left">Number of running test tasks: %s</string>
 
+    <string name="status_disconnected">متصل نیست</string>
+    <string name="status_connected">متصل شد</string>
+    <string name="status_testing">در حال تست...</string>
+
     <string name="import_subscription_success">Subscription imported Successfully</string>
     <string name="import_subscription_failure">Import subscription failed</string>
     <string name="title_fragment_settings">Fragment Settings</string>
@@ -474,10 +478,8 @@
     </string-array>
 
     <!-- Custom User Login Strings -->
-    <string name="title_custom_user_login">Custom User</string>
-    <string name="text_welcome">Welcome to IraNTun</string>
-    <string name="btn_sign_up">Sign Up</string>
-    <string name="btn_free">Free Version</string>
+    <string name="login_with_username">ورود با نام کاربری</string>
+    <string name="login_as_guest">ورود به عنوان مهمان</string>
     <string name="title_enter_username">Enter Username</string>
     <string name="hint_enter_username">Username</string>
     <string name="toast_username_empty">Username cannot be empty</string>

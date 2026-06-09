@@ -169,9 +169,6 @@
         <activity
             android:name=".ui.AboutActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.CustomUserLoginActivity"
-            android:exported="false" />
 
         <service
             android:name=".service.CoreVpnService"

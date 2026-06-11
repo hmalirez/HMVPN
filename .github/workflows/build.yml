@@ -85,8 +85,8 @@ jobs:
 
     - name: Prepare signing keystore
       run: |
-        mkdir -p ${{ github.workspace }}/release
-        echo "${{ secrets.SIGNING_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/release/IravpnRelease.jks
+        mkdir -p ${{ github.workspace }}/V2rayNG/release
+        echo "${{ secrets.SIGNING_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/V2rayNG/release/IravpnRelease.jks
 
     - name: Build Release APK
       run: |
